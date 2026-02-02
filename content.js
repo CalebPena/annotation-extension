@@ -116,6 +116,7 @@
       canvas.classList.remove("active");
       highlightCanvas.classList.remove("active");
       statusEl.style.display = "none";
+      clearCanvas();
     }
   }
 
