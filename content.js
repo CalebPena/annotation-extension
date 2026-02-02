@@ -5,7 +5,7 @@
   let highlightCtx = null;
   let statusEl = null;
   let isActive = false;
-  let currentTool = "pencil";
+  let currentTool = "square";
   let isDrawing = false;
   let startX = 0;
   let startY = 0;
@@ -108,6 +108,7 @@
     isActive = !isActive;
     if (isActive) {
       init();
+      currentTool = "square";
       canvas.classList.add("active");
       highlightCanvas.classList.add("active");
       statusEl.style.display = "block";
