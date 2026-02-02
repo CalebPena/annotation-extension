@@ -57,7 +57,7 @@
     canvas.addEventListener("mousemove", onMouseMove);
     canvas.addEventListener("mouseup", onMouseUp);
     canvas.addEventListener("mouseleave", onMouseUp);
-    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keydown", onKeyDown, true);
   }
 
   function resizeCanvas() {
@@ -109,10 +109,12 @@
     if (isActive) {
       init();
       canvas.classList.add("active");
+      highlightCanvas.classList.add("active");
       statusEl.style.display = "block";
       updateStatus();
     } else if (canvas) {
       canvas.classList.remove("active");
+      highlightCanvas.classList.remove("active");
       statusEl.style.display = "none";
     }
   }
@@ -130,7 +132,10 @@
 
   function saveState() {
     history = history.slice(0, historyIndex + 1);
-    history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    history.push({
+      main: ctx.getImageData(0, 0, canvas.width, canvas.height),
+      highlight: highlightCtx.getImageData(0, 0, highlightCanvas.width, highlightCanvas.height),
+    });
     historyIndex++;
     if (history.length > 50) {
       history.shift();
@@ -141,22 +146,26 @@
   function undo() {
     if (historyIndex > 0) {
       historyIndex--;
-      ctx.putImageData(history[historyIndex], 0, 0);
+      ctx.putImageData(history[historyIndex].main, 0, 0);
+      highlightCtx.putImageData(history[historyIndex].highlight, 0, 0);
     } else if (historyIndex === 0) {
       historyIndex = -1;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      highlightCtx.clearRect(0, 0, highlightCanvas.width, highlightCanvas.height);
     }
   }
 
   function redo() {
     if (historyIndex < history.length - 1) {
       historyIndex++;
-      ctx.putImageData(history[historyIndex], 0, 0);
+      ctx.putImageData(history[historyIndex].main, 0, 0);
+      highlightCtx.putImageData(history[historyIndex].highlight, 0, 0);
     }
   }
 
   function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    highlightCtx.clearRect(0, 0, highlightCanvas.width, highlightCanvas.height);
     history = [];
     historyIndex = -1;
   }
@@ -183,6 +192,7 @@
       ctx.moveTo(startX, startY);
     } else if (currentTool === "highlighter") {
       highlightPath = [{ x: startX, y: startY }];
+      imageData = highlightCtx.getImageData(0, 0, highlightCanvas.width, highlightCanvas.height);
     }
   }
 
@@ -197,15 +207,13 @@
       ctx.moveTo(pos.x, pos.y);
     } else if (currentTool === "highlighter") {
       highlightPath.push({ x: pos.x, y: pos.y });
-      ctx.putImageData(imageData, 0, 0);
-      ctx.strokeStyle = HIGHLIGHT_COLOR;
-      ctx.lineWidth = HIGHLIGHT_WIDTH;
-      ctx.beginPath();
-      ctx.moveTo(highlightPath[0].x, highlightPath[0].y);
+      highlightCtx.putImageData(imageData, 0, 0);
+      highlightCtx.beginPath();
+      highlightCtx.moveTo(highlightPath[0].x, highlightPath[0].y);
       for (let i = 1; i < highlightPath.length; i++) {
-        ctx.lineTo(highlightPath[i].x, highlightPath[i].y);
+        highlightCtx.lineTo(highlightPath[i].x, highlightPath[i].y);
       }
-      ctx.stroke();
+      highlightCtx.stroke();
     } else {
       ctx.putImageData(imageData, 0, 0);
       ctx.beginPath();
@@ -259,6 +267,7 @@
   function onKeyDown(e) {
     if (!isActive) return;
 
+    const handled = true;
     if (e.key === "d") {
       currentTool = "pencil";
       updateStatus();
@@ -282,7 +291,12 @@
       redo();
     } else if (e.key === "Escape") {
       toggle();
+    } else {
+      return;
     }
+
+    e.preventDefault();
+    e.stopPropagation();
   }
 
   chrome.runtime.onMessage.addListener((message) => {
