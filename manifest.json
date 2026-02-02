@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Screen Annotator",
+  "version": "1.0",
+  "description": "Draw annotations on web pages",
+  "permissions": ["activeTab"],
+  "commands": {
+    "toggle-annotate": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+D",
+        "mac": "Command+Shift+D"
+      },
+      "description": "Toggle annotation mode"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ]
+}
