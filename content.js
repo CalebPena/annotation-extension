@@ -53,11 +53,12 @@
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("scroll", resizeCanvas);
 
+    document.addEventListener("keydown", onKeyDown, true);
+
     canvas.addEventListener("mousedown", onMouseDown);
     canvas.addEventListener("mousemove", onMouseMove);
     canvas.addEventListener("mouseup", onMouseUp);
     canvas.addEventListener("mouseleave", onMouseUp);
-    document.addEventListener("keydown", onKeyDown, true);
   }
 
   function resizeCanvas() {
@@ -256,7 +257,7 @@
     lastY = pos.y;
   }
 
-  function onMouseUp() {
+  function onMouseUp(e) {
     if (!isDrawing) return;
     isDrawing = false;
     imageData = null;
